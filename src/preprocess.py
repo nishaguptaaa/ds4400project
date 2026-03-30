@@ -1,71 +1,70 @@
 import os
 import pandas as pd
 
-# ---- STEP 1: Path to your XPT file ----
+#loading huge dataset
 xpt_path = os.path.expanduser("~/Downloads/LLCP2024.XPT")
 
-# ---- STEP 2: Where to save your smaller dataset ----
+#saving smaller data set
 output_path = os.path.join("data", "brfss_small.csv")
 
-# ---- STEP 3: Select relevant features ----
+#selecting relevant features
 selected_cols = [
-    "_MENT14D",   # target
+    #target variable
+    "_MENT14D",
 
-    # lifestyle
+    #lifestyle
     "EXERANY2",
     "SMOKE100",
     "SMOKDAY2",
     "ALCDAY4",
     "DRNK3GE5",
 
-    # health
+    #health
     "_BMI5",
     "GENHLTH",
     "PHYSHLTH",
 
-    # socioeconomic
+    #socioeconomic
     "INCOME3",
     "EDUCA",
     "EMPLOY1",
     "MARITAL",
 
-    # social
+    #social
     "EMTSUPRT",
     "SDLONELY",
 
-    # demographics
+    #demographics
     "_AGE80",
     "_SEX",
     "_RACE"]
 
-# ---- STEP 4: Define missing value codes ----
+#missing value codes
 missing_codes = [7, 8, 9, 77, 88, 99, 777, 888, 999]
 
-# ---- STEP 5: Read file in chunks ----
+#reading file in chunks
 reader = pd.read_sas(xpt_path, chunksize=50000)
-
 chunks = []
 
 for chunk in reader:
-    # keep only selected columns
+    #keeping only selected columns
     chunk = chunk[selected_cols].copy()
 
-    # replace BRFSS missing codes with NaN
+    #replacing missing codes with NaN
     chunk = chunk.replace(missing_codes, pd.NA)
 
-    # drop rows where target is missing
+    #dropping rows where target is missing
     chunk = chunk.dropna(subset=["_MENT14D"])
 
     chunks.append(chunk)
 
-# ---- STEP 6: Combine all chunks ----
+#combining all chunks
 df = pd.concat(chunks, ignore_index=True)
 
-# ---- STEP 7: Check result ----
+#checking results
 print("Final dataset shape:", df.shape)
 print(df.head())
 
-# ---- STEP 8: Save to CSV ----
+#saving smaller csv file
 df.to_csv(output_path, index=False)
-
 print(f"Saved cleaned dataset to: {output_path}")
